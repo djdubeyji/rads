@@ -1,87 +1,64 @@
 # RADS — Ransomware Risk Analysis & Decision Support
 
-A Prospect-Theory model of ransom-payment decisions, plus a practical,
-organisation-level decision-support tool aligned with DORA asset/resilience
-obligations.
+A Prospect-Theory model of ransom-payment decisions: it formalises how ransomware
+operators manipulate a victim's decision through framing and time-urgency, and how that
+manipulation can be reversed to reach a rational *pay vs. self-recover* decision.
 
 > **Decision support only — not legal advice, and not authorisation to pay.**
-> A ransom payment can breach EU/OFAC sanctions and funds criminal activity.
-> See [`tool/`](tool/) and always involve legal counsel and law enforcement
-> before acting.
+> A ransom payment can breach EU/OFAC sanctions and funds criminal activity. Any real
+> decision must involve legal counsel and law enforcement.
+
+This repository accompanies the paper *Taming the Ransomware Threats: Leveraging Prospect
+Theory for Rational Payment Decisions* (in preparation, targeting the MDPI *Journal of
+Cybersecurity and Privacy*).
 
 ---
 
 ## What's here
 
-RADS models how ransomware attackers exploit **Prospect Theory** — shifting the
-victim's reference point and using time-urgency to distort probabilities — to push
-organisations into paying, and how that distortion can be mathematically reversed
-to reach a rational *pay vs. self-recover* decision.
+RADS models the ransom decision as a lottery over uncertain losses. Attackers shift the
+victim's reference point and distort perceived probabilities (both formalised with
+Prospect Theory's value function and probability-weighting function); RADS reverses that
+distortion by reinstating true parameters and anchoring the decision at the realistic
+self-recovery fallback rather than an unattainable pristine state.
 
-The repo has two halves that share one scoring core:
-
-| Folder | What it is |
+| Folder | Contents |
 |---|---|
-| [`paper/`](paper/) | The research manuscript (LaTeX, MDPI *Journal of Cybersecurity and Privacy* template) and bibliography. |
-| [`simulation/`](simulation/) | The model implemented and validated in Python — the value function, probability weighting, expected-value benchmark, attacker manipulation, and the RADS correction, plus a Monte-Carlo study. |
-| [`tool/`](tool/) | An Excel-based, organisation-level decision tool and a worked example. Doubles as a DORA-aligned ICT asset register with risk scoring. |
+| [`paper/`](paper/) | The manuscript (LaTeX, MDPI JCP template), bibliography, and the Results section. |
+| [`simulation/`](simulation/) | The model implemented and validated in Python: value function, probability weighting, the expected-value benchmark, the attacker-manipulation and RADS-correction operators, plus a Monte-Carlo study and the figures. |
 
 ---
 
 ## Quick start
 
 ### Run the simulation
-Open [`simulation/RADS_simulation.ipynb`](simulation/RADS_simulation.ipynb) in
-Google Colab (or Jupyter) and **Run all**. It is self-contained. To regenerate
-the figures from the command line:
+Open [`simulation/RADS_simulation.ipynb`](simulation/RADS_simulation.ipynb) in Google
+Colab (or Jupyter) and **Run all** — it is self-contained. To regenerate the figures from
+the command line:
 
 ```bash
 pip install -r requirements.txt
 cd simulation && python rads_analysis.py
 ```
 
-`rads_core.py` is the reusable engine (value function `v(x)`, weighting `w(p)`,
-lotteries, expected value, and the decision logic) — import it anywhere.
+`rads_core.py` is the reusable engine (value function `v(x)`, weighting `w(p)`, the pay/
+recover lotteries, expected value, and the decision logic of Eqs. 1–9) — import it anywhere.
 
-### Use the decision tool
-1. Open [`tool/RADS_Registry_Template.xlsx`](tool/RADS_Registry_Template.xlsx).
-2. Read the **Legal_Ethics** sheet first.
-3. Fill the yellow cells on **Org_Info** and list affected applications on **Assets**
-   (criticality, backup coverage, value, downtime cost).
-4. Read the single organisation-level recommendation on **Results**.
-
-See [`tool/examples/Redport_DE_example.xlsx`](tool/examples/Redport_DE_example.xlsx)
-for a fully worked case (a fictional large logistics operator, 52 affected apps).
-To rebuild the workbooks from source: `cd tool && python build_xlsx.py`.
-
----
-
-## How this supports DORA
-
-The tool is effectively a **DORA-aligned ICT asset register with live risk scoring**,
-rather than a static spreadsheet:
-
-- **Art. 8 (identification & classification):** the Assets sheet is a criticality-classified
-  inventory of ICT assets.
-- **Resilience / backup & recovery:** backup coverage per asset drives whether it is
-  self-recoverable, feeding the decision directly.
-- **Art. 29 (concentration risk):** concentration logic (e.g. the +15% same-platform
-  multiplier from the DORA Registry app) plugs into the same scoring.
-- **Shared engine:** the same Prospect-Theory scoring core powers both the validated
-  research model and the compliance tool, so the tooling is grounded in a defensible,
-  documented method.
+### Headline result
+On a population of 20,000 simulated incidents, attacker framing induces systematic
+over-payment; RADS roughly halves the resulting expected regret, eliminates over-payment,
+and is provably invariant to the attacker's framing intensity. See
+[`simulation/figures/`](simulation/figures/) and the paper's Results section.
 
 ---
 
 ## Status & honest caveats
 
-- **Early iteration.** The model is being actively refined.
-- **Placeholder parameters.** Simulation and example figures use illustrative ranges.
-  Anchor them to current incident data (Coveware / Sophos / IBM / ENISA) before quoting
-  any number.
+- **Early iteration**, actively being refined.
+- **Placeholder parameters.** Simulation figures use illustrative ranges. Anchor them to
+  current incident data (Coveware / Sophos / IBM / ENISA) before quoting any number.
 - **Citations to verify.** Some references were reconstructed and are flagged `% [VERIFY]`
-  in [`paper/references.bib`](paper/references.bib).
-- **The tool never authorises payment.** It routes to legal/sanctions review.
+  in [`paper/references.bib`](paper/references.bib) — confirm before submission.
 
 ---
 
@@ -94,31 +71,28 @@ rads/
 ├── .gitignore
 ├── requirements.txt
 ├── paper/
-│   ├── main.tex              # MDPI JCP manuscript
+│   ├── template.tex          # MDPI JCP manuscript (main file)
+│   ├── results.tex           # Results section (\input into the manuscript)
 │   ├── references.bib
-│   └── figures/              # add the paper's PNGs here (see note below)
-├── simulation/
-│   ├── RADS_simulation.ipynb # Colab-ready validation notebook
-│   ├── rads_core.py          # reusable scoring engine (Eqs. 1–9)
-│   ├── rads_analysis.py      # regenerates the figures
-│   ├── build_nb.py           # rebuilds the notebook from source
-│   └── figures/              # generated figures
-└── tool/
-    ├── RADS_Registry_Template.xlsx   # blank, upload-ready
-    ├── build_xlsx.py                 # rebuilds the workbooks
-    └── examples/
-        └── Redport_DE_example.xlsx   # worked example
+│   └── figures/              # manuscript figures
+└── simulation/
+    ├── RADS_simulation.ipynb # Colab-ready validation notebook
+    ├── rads_core.py          # reusable engine (Eqs. 1–9)
+    ├── rads_analysis.py      # regenerates the figures
+    ├── build_nb.py           # rebuilds the notebook from source
+    └── figures/              # generated figures
 ```
-
-> **Note:** `paper/figures/` is empty on purpose — add the manuscript's own images
-> (`statistic_ransomware.png`, `shifted_s-shaped.png`, `RADS.png`) from your Overleaf
-> project, or regenerate them.
 
 ---
 
-## Citation
+## Data availability
 
-If you use this work, please cite the paper (details to be completed on publication):
+All code required to reproduce the simulation study and its figures is available in this
+repository ([`simulation/`](simulation/)). No external or personal data were used; the
+evaluation is based on synthetic scenarios generated from the parameter ranges described
+in the paper.
+
+## Citation
 
 > Sharma, P. *Taming the Ransomware Threats: Leveraging Prospect Theory for Rational
 > Payment Decisions.* (in preparation).
