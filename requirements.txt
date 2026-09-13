@@ -1,0 +1,8 @@
+# Core scientific stack for the simulation and tool builders
+numpy>=1.24
+pandas>=2.0
+matplotlib>=3.7
+openpyxl>=3.1
+
+# Only needed to rebuild the notebook from build_nb.py
+nbformat>=5.9

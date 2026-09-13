@@ -1,0 +1,284 @@
+% ============================================================================
+%  RADS — MDPI resubmission skeleton
+%  Target journal: Journal of Cybersecurity and Privacy (JCP).  To switch,
+%  change the first option in \documentclass below to e.g. futureinternet,
+%  information, applsci, electronics.
+%
+%  HOW TO USE THIS FILE
+%  --------------------
+%  1. Open the OFFICIAL MDPI Overleaf template for your target journal.
+%     (Overleaf: "MDPI Article".) It ships Definitions/mdpi.cls and the
+%     bibliography style — this skeleton assumes those files are present.
+%  2. Replace that template's main.tex body with this one, keeping its
+%     Definitions/ folder. Put references.bib alongside.
+%  3. If a macro name below differs from your template version, reconcile
+%     with the template's own example file — MDPI updates the class
+%     periodically and I can't verify the exact current macro set from here.
+%  4. TODO markers show where content still has to be written.
+% ============================================================================
+
+\documentclass[jcp,article,submit,pdftex,moreauthors]{Definitions/mdpi}
+
+% amsmath/amssymb are loaded by the MDPI class; if compiling standalone, add:
+% \usepackage{amsmath,amssymb}
+
+% ---------------------------------------------------------------- front matter
+\Title{Taming Ransomware Decisions: A Prospect-Theoretic Decision-Support Model that Counteracts Attacker Framing}
+\TitleCitation{Taming Ransomware Decisions: A Prospect-Theoretic Decision-Support Model that Counteracts Attacker Framing}
+
+\newcommand{\orcidauthorA}{0000-0000-0000-0000} % TODO: your ORCID
+
+\Author{Pranjal Sharma $^{1,}$*\orcidA{}}
+\AuthorNames{Pranjal Sharma}
+\AuthorCitation{Sharma, P.}
+
+\address{%
+$^{1}$ \quad Department of Computer Science, Heidelberg University, Heidelberg, Germany}
+
+\corres{Correspondence: pranjaldub@gmail.com}
+
+\abstract{% TODO: rewrite once results exist. Target structure for MDPI:
+% (1) problem + urgency, (2) the gap: existing pay/no-pay guidance ignores that
+% attackers weaponise cognitive bias, (3) what we do: formalise the attack as
+% a Prospect-Theory reference shift + framing distortion and define RADS, a
+% decision-support model that reverses that distortion, (4) how we evaluate it
+% (simulation of N scenarios vs an expected-value optimum + retrospective cases
+% + sensitivity analysis), (5) headline quantitative result (regret reduction),
+% (6) one-line implication.
+Ransomware operators do not only encrypt data; they engineer the victim's
+decision. This paper formalises that manipulation using Prospect Theory---
+modelling the ransom demand as an attacker-induced shift of the decision
+reference point together with an urgency-driven distortion of outcome
+probabilities---and introduces \emph{Ransomware Risk Analysis and Decision
+Support} (RADS), a model that reverses the induced distortion and recommends
+whether paying is defensible. We evaluate RADS against a risk-neutral
+expected-value optimum on a simulated population of incidents, on documented
+real-world cases, and under sensitivity analysis of its parameters.
+% TODO: state the quantitative outcome.
+}
+
+\keyword{ransomware; prospect theory; behavioural economics; security decision support;
+expected value; framing effect; ISO/IEC 27001; DORA}
+
+\begin{document}
+\maketitle
+
+% ============================================================================
+\section{Introduction}
+% Keep the motivating incidents (MGM/Caesars, share-price drop, the 17\% rise)
+% but end the intro with an explicit, testable contribution list.
+\cite{bib_statista}\cite{bib_cvedetails}\cite{bib_techcrunch}
+
+\textbf{Contributions.} % <- reviewers look for this.
+\begin{enumerate}
+  \item We formalise the attacker's manipulation as two Prospect-Theory
+        operators: a reference-point shift and an urgency-driven probability
+        distortion (Section~\ref{sec:method}).
+  \item We define RADS, which inverts those operators and compares the
+        de-biased valuation against a risk-neutral expected-value benchmark.
+  \item We evaluate RADS by simulation, retrospective case analysis, and
+        sensitivity analysis (Sections~\ref{sec:eval}--\ref{sec:results}),
+        rather than a single illustrative example.
+\end{enumerate}
+
+% ============================================================================
+\section{Related Work}\label{sec:related}
+% NEW SECTION — the single biggest structural gap in the arXiv version.
+% Cover three strands and position RADS against each:
+%   (a) economics / game theory of ransom payment \cite{bib_cartwright2019,bib_laszka2017};
+%   (b) behavioural economics of security decisions (Prospect Theory) \cite{bib_prospecttheory,bib_cpt1992};
+%   (c) incident-response standards as decision baselines \cite{bib_iso,bib_dora}.
+% Gap statement: prior work models the *economics* of paying, but not the
+% attacker's deliberate exploitation of cognitive bias, nor a mechanism to
+% reverse it. That gap is RADS.
+% TODO: 15--30 references. Verify every reconstructed citation in references.bib.
+
+% ============================================================================
+\section{Background}\label{sec:background}
+
+\subsection{Incident-response baseline (ISO/IEC 27001:2022)}
+% Condensed from the original §1.1: A.16 (incident management) and A.17
+% (continuity) establish that a responsible owner and a restoration plan must
+% already exist. Keep short — this is a prerequisite, not the contribution.
+\cite{bib_iso}
+
+\subsection{Prospect Theory}
+Prospect Theory \cite{bib_prospecttheory} models choice through a value
+function defined over gains and losses relative to a reference point, and a
+probability-weighting function \cite{bib_cpt1992}. The value function is
+S-shaped and loss-averse:
+\begin{equation}\label{eq:value}
+v(x)=
+\begin{cases}
+x^{\alpha}, & x \ge 0,\\[4pt]
+-\lambda\,(-x)^{\beta}, & x < 0,
+\end{cases}
+\end{equation}
+with $\alpha,\beta \approx 0.88$ and loss-aversion $\lambda \approx 2.25$
+\cite{bib_cpt1992}. Objective probabilities are transformed by
+\begin{equation}\label{eq:weight}
+w(p)=\frac{p^{\gamma}}{\left(p^{\gamma}+(1-p)^{\gamma}\right)^{1/\gamma}},
+\end{equation}
+with $\gamma \approx 0.61$, so that small probabilities are over-weighted and
+large ones under-weighted. Equations~\eqref{eq:value}--\eqref{eq:weight} are
+the machinery the original draft named but did not use; they are central here.
+
+% ============================================================================
+\section{Method: The RADS Model}\label{sec:method}
+
+\subsection{Decision setting}
+For each affected application $a$ the organisation chooses
+$k\in\{\mathrm{pay},\mathrm{rec}\}$ (pay the ransom, or self-recover). Both
+outcomes are uncertain. Let $r_0$ denote the organisation's true pre-attack
+state, used as the neutral reference point.
+
+\subsection{Expected-value benchmark (ground truth)}
+Self-recovery has expected monetary loss
+\begin{equation}\label{eq:erec}
+\mathbb{E}\!\left[\ell_a^{\mathrm{rec}}\right]=
+C^{\mathrm{down}}_a\,t^{\mathrm{rec}}_a
++C^{\mathrm{lab}}_a
++(1-\phi_a)\,V^{\mathrm{data}}_a
++p^{\mathrm{leak}}_{\mathrm{np}}\,D^{\mathrm{leak}}_a,
+\end{equation}
+where $\phi_a\in[0,1]$ is backup coverage (the ``feasibility'' factor),
+$C^{\mathrm{down}}_a$ the downtime cost rate, $t^{\mathrm{rec}}_a$ the recovery
+time, $V^{\mathrm{data}}_a$ the value of unrecoverable current data,
+$D^{\mathrm{leak}}_a$ the leak damage, and $p^{\mathrm{leak}}_{\mathrm{np}}$ the
+probability of leak given non-payment. Paying has expected loss
+\begin{equation}\label{eq:epay}
+\mathbb{E}\!\left[\ell_a^{\mathrm{pay}}\right]=
+R_a
++p_{\mathrm{key}}\,C^{\mathrm{down}}_a t^{\mathrm{pay}}_a
++(1-p_{\mathrm{key}})\,\mathbb{E}\!\left[\ell_a^{\mathrm{rec}}\right]
++p_{\mathrm{re}}\,C^{\mathrm{re}}_a
++p^{\mathrm{leak}}_{\mathrm{p}}\,D^{\mathrm{leak}}_a,
+\end{equation}
+where $R_a$ is the ransom, $p_{\mathrm{key}}$ the probability the decryptor
+actually works, $p_{\mathrm{re}}$ the re-extortion probability, and
+$C^{\mathrm{re}}_a$ its cost. Note that Eq.~\eqref{eq:epay} makes explicit what
+attacker framing hides: paying does not guarantee recovery. The risk-neutral
+optimum is
+\begin{equation}\label{eq:opt}
+d_a^{\star}=\arg\min_{k\in\{\mathrm{pay},\mathrm{rec}\}}\mathbb{E}\!\left[\ell_a^{(k)}\right].
+\end{equation}
+
+\subsection{Perceived value and the attacker's manipulation}
+A decision-maker does not evaluate Eqs.~\eqref{eq:erec}--\eqref{eq:epay}
+directly; they evaluate them through Prospect Theory:
+\begin{equation}\label{eq:ptval}
+V_a^{\mathrm{PT}}\!\left(k \mid r,\{p_i\}\right)=\sum_i w(p_i)\,v\!\left(x_i^{(k)}-r\right),
+\end{equation}
+where $x_i^{(k)}$ are the monetary outcomes of action $k$. The attacker applies
+two operators, parameterised by an urgency level $u\in[0,1]$ set by the
+deadline/doubling scheme:
+\begin{equation}\label{eq:manip}
+\tilde r = r_0-\Delta_{\mathrm{ref}}(u),\qquad
+\tilde p_{\mathrm{key}} = p_{\mathrm{key}}+u\,(1-p_{\mathrm{key}}),\qquad
+\tilde p_{\mathrm{re}} = (1-u)\,p_{\mathrm{re}}.
+\end{equation}
+The reference shift $\tilde r$ reframes catastrophe as the baseline (Figure~2 of
+the original draft), so paying reads as a \emph{gain}; the urgency terms
+over-weight the chance the key works and suppress re-extortion. The manipulated
+choice is $d_a^{\mathrm{PT}}=\arg\max_k V_a^{\mathrm{PT}}(k \mid \tilde r,\{\tilde p_i\})$.
+
+\subsection{The RADS correction}
+RADS reverses Eq.~\eqref{eq:manip}: it restores the reference to $r_0$ using
+prior-incident evidence (the ``reference effect'') and replaces manipulated
+probabilities with empirical priors, then recommends
+\begin{equation}\label{eq:rads}
+d_a^{\mathrm{RADS}}=\arg\max_k V_a^{\mathrm{PT}}\!\left(k \mid r_0,\{p_i\}\right).
+\end{equation}
+RADS therefore removes the \emph{attacker-induced} distortion while remaining
+consistent with Eq.~\eqref{eq:opt}; the two benchmarks $d_a^{\star}$ and
+$d_a^{\mathrm{RADS}}$ are reported side by side.
+
+\subsection{Portfolio prioritisation by criticality}
+% This preserves the original criticality idea, on a single consistent scale
+% kappa_a in (0,1]. (The arXiv version silently switched the scale from
+% {1,0.5,0.25} to {5,2}; that is fixed here.)
+A screening score aggregates the normalised factors $V_f$ with weights
+$\omega_f$:
+\begin{equation}\label{eq:df}
+\mathrm{DF}_a=\sum_{f}\omega_f\,\rho_f\,V_f,\qquad \sum_f\omega_f=1,
+\end{equation}
+where $\rho_f\in\{+1,-1\}$ fixes each factor's direction (e.g. higher backup
+coverage must \emph{lower} the incentive to pay --- a sign error in the original
+formula). Applications are then ranked by a criticality-adjusted score,
+\begin{equation}\label{eq:adj}
+\widehat{\mathrm{DF}}_a=\mathrm{DF}_a\left(1+\frac{\kappa_a-\bar\kappa}{\sum_j \kappa_j}\right),
+\end{equation}
+with $\kappa_a$ the application criticality and $\bar\kappa$ its mean.
+
+% ============================================================================
+\section{Evaluation Design}\label{sec:eval}
+% This section replaces the single "Crown Financing GmbH" example.
+
+\subsection{Simulation study}
+We sample a population of $N$ incident scenarios, drawing
+$R_a, p_{\mathrm{key}}, p_{\mathrm{re}}, p^{\mathrm{leak}}, \phi_a, C^{\mathrm{down}}_a,
+t^{\mathrm{rec}}_a, V^{\mathrm{data}}_a$ from ranges anchored in public incident
+data \cite{bib_coveware,bib_sophos,bib_ibmcost,bib_enisa}. For each scenario we
+compute three decisions --- the risk-neutral optimum $d^{\star}$
+(Eq.~\eqref{eq:opt}), the manipulated Prospect-Theory decision $d^{\mathrm{PT}}$,
+and the RADS decision $d^{\mathrm{RADS}}$ (Eq.~\eqref{eq:rads}) --- and report
+decision agreement, over-pay and under-pay rates, and expected regret.
+
+\subsection{Regret metric}
+\begin{equation}\label{eq:regret}
+\mathrm{Regret}(d)=\mathbb{E}\!\left[\ell_a^{(d)}\right]-\min_k \mathbb{E}\!\left[\ell_a^{(k)}\right].
+\end{equation}
+Headline claim to test: $\overline{\mathrm{Regret}}(d^{\mathrm{RADS}})\ll
+\overline{\mathrm{Regret}}(d^{\mathrm{PT}})$ across the population.
+
+\subsection{Sensitivity analysis}
+Monte-Carlo perturbation of the weights $\omega_f$ and PT parameters
+$(\alpha,\beta,\lambda,\gamma)$; report the fraction of scenarios whose decision
+is stable under $\pm x\%$ perturbation and a tornado plot of factor influence.
+This turns the ``arbitrary weights/threshold'' criticism into a characterised
+result.
+
+\subsection{Retrospective cases}
+Apply RADS to 8--15 documented incidents with known outcomes (e.g. MGM,
+Caesars, Colonial Pipeline, Norsk Hydro, Maersk/NotPetya, Baltimore, Atlanta);
+compare the recommendation to what each organisation did. Presented as
+illustrative, not statistical --- state the small-$N$, confounded-outcome
+limitation explicitly.
+
+% ============================================================================
+\section{Results}\label{sec:results}
+% TODO: figures + tables produced by the simulation notebook.
+% - Fig: regret distribution, naive / PT-biased / RADS.
+% - Table: decision-agreement and over/under-pay rates.
+% - Fig: sensitivity tornado + stability curve.
+% - Table: retrospective cases (org | did | RADS says | post-hoc better call).
+
+% ============================================================================
+\section{Discussion}\label{sec:discussion}
+% - Legality/sanctions (OFAC-type exposure), insurance, law-enforcement
+%   reporting: a model that can output "pay" must engage these seriously.
+% - The ethical stance: RADS de-biases; it does not endorse funding crime.
+% - Applicability to DORA (Art. 8 asset identification, Art. 29 concentration
+%   risk): the same PT risk scoring drives a compliance-oriented asset register.
+% - Limitations: parameter elicitation, single-organisation reference data.
+
+% ============================================================================
+\section{Conclusions}\label{sec:conclusion}
+% Tighten the original conclusion; restate the tested claim and future work
+% (human-subjects framing study; the DORA registry application).
+
+% ---------------------------------------------------------------- back matter
+\funding{This research received no external funding.}
+
+\acknowledgments{The author thanks Prof.\ Dr.\ Rima-Maria Rahal, Department of
+Psychology, Heidelberg University, for formal feedback.}
+
+\conflictsofinterest{The author declares no conflict of interest.}
+
+\begin{adjustwidth}{-\extralength}{0cm}
+\reftitle{References}
+% MDPI templates typically use: \externalbibliography{yes}
+\bibliography{references}
+\end{adjustwidth}
+
+\end{document}
